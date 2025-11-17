@@ -1,95 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Counting Tree Diagram Builder</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Counting Tree Diagram — Designed by Harsh Randhir Singh & Harsh Vardhan Singh</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f8fafc; }
-    .container { max-width: 1100px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 10px; box-shadow: 0 4px 10px #d1d5db40; }
-    form { margin-bottom: 20px; }
-    .stage-group { margin-bottom: 15px; }
-    label, input { font-size: 15px; }
-    button { margin-right: 10px; margin-top: 10px; padding: 7px 20px; border-radius: 5px; background: #38bdf8; color: #fff; border: none; cursor: pointer; }
-    button#add-stage { background: #06b6d4; }
-    button:hover { opacity: 0.9; }
-    svg { border: 1px solid #e5e7eb; margin-top: 18px; background: #f1f5f9; }
-    .outcome-path { stroke-width: 3; fill: none; }
-    .stage0 { stroke: #60a5fa; }
-    .stage1 { stroke: #34d399; }
-    .stage2 { stroke: #f87171; }
-    .stage3 { stroke: #f59e42; }
-    .stage4 { stroke: #c084fc; }
-    circle { fill: #fff; stroke: #64748b; stroke-width: 2.2; }
+    /* Layout & Designer style accents */
+    :root{
+      --bg:#0f172a; --card:#0b1220; --muted:#94a3b8; --accent:#06b6d4; --glass: rgba(255,255,255,0.04);
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; background:linear-gradient(180deg,#031028 0%, #071a2b 100%); color:#e6eef8}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid rgba(255,255,255,0.03);backdrop-filter: blur(6px)}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#60a5fa);display:flex;align-items:center;justify-content:center;font-weight:700;color:#04202a}
+    .title{font-size:18px;font-weight:600}
+    .subtitle{font-size:13px;color:var(--muted)}
+    nav .credits{font-size:13px;color:var(--muted)}
+
+    .wrap{max-width:1200px;margin:28px auto;padding:22px;display:grid;grid-template-columns:360px 1fr;gap:20px}
+
+    /* Left panel (controls) */
+    .panel{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 6px 30px rgba(2,6,23,0.6)}
+    .panel h3{margin:0 0 8px 0}
+    .stage-group{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+    label{min-width:70px;color:var(--muted)}
+    input[type=number]{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit}
+    .controls{display:flex;gap:10px;margin-top:12px}
+    button{padding:9px 14px;border-radius:9px;border:none;cursor:pointer;font-weight:600}
+    .btn-add{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--accent)}
+    .btn-generate{background:var(--accent);color:#04202a}
+    .small{font-size:13px;color:var(--muted);margin-top:8px}
+
+    /* Right panel (canvas) */
+    .canvas-card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.008));border-radius:12px;padding:14px}
+    svg{width:100%;height:640px;border-radius:8px;background:linear-gradient(180deg,#071a2b,#0b1f2d);display:block}
+    .outcome{margin-top:10px;color:var(--muted);font-weight:600}
+
+    /* SVG colors (lighter for dark theme) */
+    .outcome-path{stroke-width:3;fill:none;opacity:0.95}
+    .stage0{stroke:#7dd3fc}
+    .stage1{stroke:#34d399}
+    .stage2{stroke:#fb7185}
+    .stage3{stroke:#fbbf24}
+    .stage4{stroke:#c084fc}
+    circle{fill:#021827;stroke:#9fb4c6;stroke-width:2}
+    text{fill:#dff3ff}
+
+    footer{max-width:1200px;margin:18px auto;padding:12px 18px;color:var(--muted);font-size:13px}
+
+    /* Responsive */
+    @media(max-width:980px){.wrap{grid-template-columns:1fr;}.canvas-card svg{height:480px}}
+
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Counting Tree Diagram Generator 🌳</h2>
-    <form id="stages-form">
-      <div id="stages-list"></div>
-      <button type="button" id="add-stage">+ Add Stage</button>
-      <button type="submit">Generate Tree</button>
-    </form>
-    <div>
-      <svg id="tree-svg" width="1000" height="600"></svg>
-      <p id="outcomes-count"></p>
+  <header>
+    <div class="brand">
+      <div class="logo">CR</div>
+      <div>
+        <div class="title">Counting Tree Diagram</div>
+        <div class="subtitle">Interactive visualizer for counting problems</div>
+      </div>
     </div>
-  </div>
+    <nav>
+      <div class="credits">Designed by <strong>Harsh Randhir Singh</strong> & <strong>Harsh Vardhan Singh</strong></div>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <aside class="panel">
+      <h3>Stages</h3>
+      <form id="stages-form">
+        <div id="stages-list">
+          <!-- inputs added here -->
+        </div>
+        <div class="controls">
+          <button type="button" id="add-stage" class="btn-add">+ Add Stage</button>
+          <button type="submit" class="btn-generate">Generate Tree</button>
+        </div>
+        <div class="small">Tip: add stage counts (e.g., 2, 3, 4). The tree shows all outcomes.</div>
+      </form>
+    </aside>
+
+    <section class="canvas-card">
+      <svg id="tree-svg" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMin slice"></svg>
+      <div class="outcome" id="outcomes-count"></div>
+    </section>
+  </main>
+
+  <footer>
+    This page embeds the Counting Tree Diagram component — integrated and styled for Harsh Randhir Singh & Harsh Vardhan Singh's website.
+  </footer>
 
   <script>
+    // Component logic (keeps original behavior, tuned for responsive svg)
     const MAX_COLORS = 5;
-    const colorClasses = ['stage0', 'stage1', 'stage2', 'stage3', 'stage4'];
+    const colorClasses = ['stage0','stage1','stage2','stage3','stage4'];
 
     document.getElementById('add-stage').onclick = () => addStageInput();
+    document.getElementById('stages-form').onsubmit = (e) => { e.preventDefault(); const stages=[]; document.querySelectorAll('.input-stage').forEach(i=>stages.push(parseInt(i.value,10))); drawTree(stages); };
 
-    document.getElementById('stages-form').onsubmit = (e) => {
-      e.preventDefault();
-      const stages = [];
-      document.querySelectorAll('.input-stage').forEach(input => {
-        stages.push(parseInt(input.value, 10));
-      });
-      drawTree(stages);
-    };
-
-    function addStageInput(defaultValue=2, idx) {
-      const div = document.createElement('div');
-      div.className = 'stage-group';
-      div.innerHTML =
-        `<label>Stage ${idx ?? document.querySelectorAll('.input-stage').length + 1}: </label>
-         <input type="number" min="1" value="${defaultValue}" class="input-stage" required>`;
+    function addStageInput(defaultValue=2, idx){
+      const div=document.createElement('div'); div.className='stage-group';
+      div.innerHTML = `<label>Stage ${idx ?? document.querySelectorAll('.input-stage').length + 1}:</label><input class="input-stage" type="number" min="1" value="${defaultValue}" required>`;
       document.getElementById('stages-list').appendChild(div);
     }
-    addStageInput(2, 1);
-    addStageInput(2, 2);
 
-    function drawTree(stages) {
+    // initialize with two stages
+    addStageInput(2,1); addStageInput(2,2);
+
+    function drawTree(stages){
       const svg = document.getElementById('tree-svg');
-      svg.innerHTML = '';
-      if (!stages.length) return;
+      // clear
+      while(svg.firstChild) svg.removeChild(svg.firstChild);
+      if(!stages.length) return;
 
-      let total = stages.reduce((a, b) => a * b, 1);
+      // compute total outcomes
+      const total = stages.reduce((a,b)=>a*b,1);
       document.getElementById('outcomes-count').textContent = `Total outcomes: ${total}`;
 
-      const hGap = 80, vGap = 80;
-      let positions = [{x: svg.width.baseVal.value/2, y: 40, path: [], level:0}];
+      // SVG coordinate system
+      const WIDTH = 1000, HEIGHT = 640;
+      const hGap = Math.min(90, Math.max(40, Math.floor(WIDTH / (Math.pow(Math.max(...stages), stages.length+1) || 5))));
+      const vGap = 90;
 
-      for (let s = 0; s < stages.length; s++) {
-        let next = [];
-        const perLevel = Math.pow(stages[s], s+1);
-        const leftMost = svg.width.baseVal.value/2 - (perLevel/2) * hGap;
+      let positions = [{x: WIDTH/2, y: 60, path: [], level:0}];
+
+      for(let s=0;s<stages.length;s++){
+        const next=[];
+        // calculate leftMost dynamically per level based on how many nodes will be in this level
+        const nodesThisLevel = positions.length * stages[s];
+        const totalWidth = (nodesThisLevel - 1) * hGap;
+        let leftMost = (WIDTH - totalWidth)/2;
         let curIdx = 0;
 
-        positions.forEach(node => {
-          for (let i = 0; i < stages[s]; i++) {
+        positions.forEach(node=>{
+          for(let i=0;i<stages[s];i++){
             const x = leftMost + (curIdx + i) * hGap;
             const y = node.y + vGap;
-            next.push({x, y, path: [...node.path, i], level: s+1, from: node});
-            let pathLine = document.createElementNS('http://www.w3.org/2000/svg','line');
+            next.push({x,y,path:[...node.path,i],level:s+1,from:node});
+
+            const pathLine = document.createElementNS('http://www.w3.org/2000/svg','line');
             pathLine.setAttribute('x1', node.x);
             pathLine.setAttribute('y1', node.y);
             pathLine.setAttribute('x2', x);
             pathLine.setAttribute('y2', y);
-            pathLine.classList.add('outcome-path', colorClasses[s % MAX_COLORS]);
+            pathLine.classList.add('outcome-path', colorClasses[s%MAX_COLORS]);
             svg.appendChild(pathLine);
           }
           curIdx += stages[s];
@@ -97,29 +154,29 @@
         positions = next;
       }
 
+      // Draw nodes with small animation
       let i = 0;
-      function animateNode() {
-        if (i >= positions.length) return;
-        let node = positions[i];
-        let circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      function animateNode(){
+        if(i>=positions.length) return;
+        const node = positions[i];
+        const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
         circle.setAttribute('cx', node.x);
         circle.setAttribute('cy', node.y);
-        circle.setAttribute('r', 14);
-        let color = colorClasses[(node.level - 1) % MAX_COLORS];
-        circle.classList.add(color);
+        circle.setAttribute('r', 12);
+        circle.classList.add(colorClasses[(node.level-1)%MAX_COLORS]);
         svg.appendChild(circle);
 
-        if (node.level === stages.length) {
-          let txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        if(node.level === stages.length){
+          const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
           txt.setAttribute('x', node.x);
-          txt.setAttribute('y', node.y + 6);
+          txt.setAttribute('y', node.y + 5);
           txt.setAttribute('text-anchor', 'middle');
-          txt.setAttribute('font-size', '13');
+          txt.setAttribute('font-size', '12');
           txt.textContent = '🍀';
           svg.appendChild(txt);
         }
         i++;
-        setTimeout(animateNode, 35);
+        setTimeout(animateNode, 25);
       }
       animateNode();
     }
