@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Counting Tree Diagram Builder</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f8fafc; }
+    .container { max-width: 1100px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 10px; box-shadow: 0 4px 10px #d1d5db40; }
+    form { margin-bottom: 20px; }
+    .stage-group { margin-bottom: 15px; }
+    label, input { font-size: 15px; }
+    button { margin-right: 10px; margin-top: 10px; padding: 7px 20px; border-radius: 5px; background: #38bdf8; color: #fff; border: none; cursor: pointer; }
+    button#add-stage { background: #06b6d4; }
+    button:hover { opacity: 0.9; }
+    svg { border: 1px solid #e5e7eb; margin-top: 18px; background: #f1f5f9; }
+    .outcome-path { stroke-width: 3; fill: none; }
+    .stage0 { stroke: #60a5fa; }
+    .stage1 { stroke: #34d399; }
+    .stage2 { stroke: #f87171; }
+    .stage3 { stroke: #f59e42; }
+    .stage4 { stroke: #c084fc; }
+    circle { fill: #fff; stroke: #64748b; stroke-width: 2.2; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Counting Tree Diagram Generator 🌳</h2>
+    <form id="stages-form">
+      <div id="stages-list"></div>
+      <button type="button" id="add-stage">+ Add Stage</button>
+      <button type="submit">Generate Tree</button>
+    </form>
+    <div>
+      <svg id="tree-svg" width="1000" height="600"></svg>
+      <p id="outcomes-count"></p>
+    </div>
+  </div>
+
+  <script>
+    const MAX_COLORS = 5;
+    const colorClasses = ['stage0', 'stage1', 'stage2', 'stage3', 'stage4'];
+
+    document.getElementById('add-stage').onclick = () => addStageInput();
+
+    document.getElementById('stages-form').onsubmit = (e) => {
+      e.preventDefault();
+      const stages = [];
+      document.querySelectorAll('.input-stage').forEach(input => {
+        stages.push(parseInt(input.value, 10));
+      });
+      drawTree(stages);
+    };
+
+    function addStageInput(defaultValue=2, idx) {
+      const div = document.createElement('div');
+      div.className = 'stage-group';
+      div.innerHTML =
+        `<label>Stage ${idx ?? document.querySelectorAll('.input-stage').length + 1}: </label>
+         <input type="number" min="1" value="${defaultValue}" class="input-stage" required>`;
+      document.getElementById('stages-list').appendChild(div);
+    }
+    addStageInput(2, 1);
+    addStageInput(2, 2);
+
+    function drawTree(stages) {
+      const svg = document.getElementById('tree-svg');
+      svg.innerHTML = '';
+      if (!stages.length) return;
+
+      let total = stages.reduce((a, b) => a * b, 1);
+      document.getElementById('outcomes-count').textContent = `Total outcomes: ${total}`;
+
+      const hGap = 80, vGap = 80;
+      let positions = [{x: svg.width.baseVal.value/2, y: 40, path: [], level:0}];
+
+      for (let s = 0; s < stages.length; s++) {
+        let next = [];
+        const perLevel = Math.pow(stages[s], s+1);
+        const leftMost = svg.width.baseVal.value/2 - (perLevel/2) * hGap;
+        let curIdx = 0;
+
+        positions.forEach(node => {
+          for (let i = 0; i < stages[s]; i++) {
+            const x = leftMost + (curIdx + i) * hGap;
+            const y = node.y + vGap;
+            next.push({x, y, path: [...node.path, i], level: s+1, from: node});
+            let pathLine = document.createElementNS('http://www.w3.org/2000/svg','line');
+            pathLine.setAttribute('x1', node.x);
+            pathLine.setAttribute('y1', node.y);
+            pathLine.setAttribute('x2', x);
+            pathLine.setAttribute('y2', y);
+            pathLine.classList.add('outcome-path', colorClasses[s % MAX_COLORS]);
+            svg.appendChild(pathLine);
+          }
+          curIdx += stages[s];
+        });
+        positions = next;
+      }
+
+      let i = 0;
+      function animateNode() {
+        if (i >= positions.length) return;
+        let node = positions[i];
+        let circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circle.setAttribute('cx', node.x);
+        circle.setAttribute('cy', node.y);
+        circle.setAttribute('r', 14);
+        let color = colorClasses[(node.level - 1) % MAX_COLORS];
+        circle.classList.add(color);
+        svg.appendChild(circle);
+
+        if (node.level === stages.length) {
+          let txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+          txt.setAttribute('x', node.x);
+          txt.setAttribute('y', node.y + 6);
+          txt.setAttribute('text-anchor', 'middle');
+          txt.setAttribute('font-size', '13');
+          txt.textContent = '🍀';
+          svg.appendChild(txt);
+        }
+        i++;
+        setTimeout(animateNode, 35);
+      }
+      animateNode();
+    }
+  </script>
+</body>
+</html>
